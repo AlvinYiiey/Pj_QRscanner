@@ -66,38 +66,42 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             if (result.getContents() == null) {
                 Toast.makeText(this, "Qr code was cancelled", Toast.LENGTH_LONG).show();
                 //if qr code exist >>>
-            }  //  web url
-            if (Patterns.WEB_URL.matcher(result.getContents()).matches()) {
+            } // web url
+            else if (Patterns.WEB_URL.matcher(result.getContents()).matches()) {
                 Intent OpenBrowser = new Intent(Intent.ACTION_VIEW, Uri.parse(result.getContents()));
                 startActivity(OpenBrowser);
-            }//  email / gmail
-            String address = new String(result.getContents());
-            String at = "@";
-            if (address.contains(at)) {
-                Intent intent = new Intent(Intent.ACTION_SEND);
-                String[] recipients = {address.replace("http://", "")};
-                intent.putExtra(Intent.EXTRA_EMAIL, recipients);
-                intent.putExtra(Intent.EXTRA_SUBJECT, "Subject Email");
-                intent.putExtra(Intent.EXTRA_TEXT, "Type Here");
-                intent.putExtra(Intent.EXTRA_CC, "");
-                intent.setType("text/html");
-                intent.setPackage("com.google.android.gm");
-                startActivity(Intent.createChooser(intent, "Send mail"));
-            } //  maps
+            } // gmail
+            else if (Patterns.EMAIL_ADDRESS.matcher(result.getContents()).matches()) {
+                String address = new String(result.getContents());
+                String at = "@";
+                if (address.contains(at)) {
+                    Intent intent = new Intent(Intent.ACTION_SEND);
+                    String[] recipients = {address.replace("http://", "")};
+                    intent.putExtra(Intent.EXTRA_EMAIL, recipients);
+                    intent.putExtra(Intent.EXTRA_SUBJECT, "Subject");
+                    intent.putExtra(Intent.EXTRA_TEXT, "Type Here");
+                    intent.putExtra(Intent.EXTRA_CC, "");
+                    intent.setType("text/html");
+                    intent.setPackage("com.google.android.gm");
+                    startActivity(Intent.createChooser(intent, "Send mail"));
+                }
+            } //maps
             Uri gmmIntentUri = Uri.parse(result.getContents());
             Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
             mapIntent.setPackage("com.google.android.apps.maps");
             if (mapIntent.resolveActivity(getPackageManager()) != null) {
                 startActivity(mapIntent);
-            }//phone call
-            String number;
-            number = new String(result.getContents());
-
-            if(number.matches("^[0-9]*$") && number.length() > 11){
-                Intent dial = new Intent(Intent.ACTION_DIAL);
-                dial.setData(Uri.parse("tel:" + number));
-                startActivity(dial);
-            } else {
+            } //phone
+            else if (Patterns.PHONE.matcher(result.getContents()).matches()) {
+                String number;
+                number = new String (result.getContents());
+                if(number.matches("^[0-9]*$") && number.length() > 11) {
+                    Intent dial = new Intent(Intent.ACTION_DIAL);
+                    dial.setData(Uri.parse("tel:" + number));
+                    startActivity(dial);
+                }
+            }
+            else {
                 try {
                     //json
                     JSONObject obj = new JSONObject(result.getContents());
